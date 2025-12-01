@@ -8,7 +8,6 @@ body {
     margin: 0;
 }
 
-/* Calculator container */
 .calculator {
     background: #222;
     padding: 20px;
@@ -19,7 +18,6 @@ body {
     gap: 15px;
 }
 
-/* Display screen */
 #expression {
     width: 100%;
     height: 60px;
@@ -33,14 +31,12 @@ body {
     box-sizing: border-box;
 }
 
-/* Buttons grid */
 .buttons {
     display: grid;
     grid-template-columns: repeat(4, 70px);
     grid-gap: 10px;
 }
 
-/* Button styling */
 button {
     height: 60px;
     font-size: 1.5rem;
@@ -52,32 +48,30 @@ button {
     transition: background 0.2s ease;
 }
 
-/* Hover effect */
 button:hover {
     background: #555;
 }
 
-/* Special buttons */
-button.operator {
+.operator {
     background: #ff9500;
 }
 
-button.operator:hover {
+.operator:hover {
     background: #e08900;
 }
 
-button.equal {
+.equal {
     background: #28a745;
 }
 
-button.equal:hover {
+.equal:hover {
     background: #218838;
 }
 
-button.clear {
+.clear {
     background: #dc3545;
 }
 
-button.clear:hover {
+.clear:hover {
     background: #b02a37;
 }
