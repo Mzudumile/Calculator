@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="calculator.css">
+    
+<body>
+    <main class="main">
+        <section class="screen">
+            <input type="text" class="expression" id="expression">
+        </section>
+        <section class="buttons">
+            <button class="button" onclick="addnumber('0')">0</button>
+            <button class="button" onclick="addnumber('1')">1</button>
+            <button class="button" onclick="addnumber('2')">2</button>
+            <button class="button" onclick="addnumber('3')">3</button>
+            <button class="button" onclick="addnumber('4')">4</button>
+            <button class="button" onclick="addnumber('5')">5</button>
+            <button class="button" onclick="addnumber('6')">6</button>
+            <button class="button" onclick="addnumber('7')">7</button>
+            <button class="button" onclick="addnumber('8')">8</button>
+            <button class="button" onclick="addnumber('9')">9</button>
+            <button class="button" onclick="addnumber('+')">+</button>
+            <button class="button" onclick="addnumber('-')">-</button>
+            <button class="button" onclick="addnumber('/')">/</button>
+            <button class="button" onclick="addnumber('X')">X</button>
+            <button class="button" onclick="clearScreen()">CLE</button>
+            <button class="button" onclick="Answer()">=</button>
+        </section>
+    </main>
+    <script src="calculator.js"></script>
+
+</body>
+</html>
