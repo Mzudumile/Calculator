@@ -1,7 +1,12 @@
 // get display element
 var display = document.getElementById("display");
+var equalPressed = false;
 // ---------------- BUTTON FUNCTIONS ----------------
 function press(value) {
+    if (equalPressed) {
+        display.value = "";
+        equalPressed = false;
+    }
     display.value += value;
 }
 function clearDisplay() {
@@ -9,6 +14,7 @@ function clearDisplay() {
 }
 function calculate() {
     try {
+        equalPressed = true;
         var tokens = tokenize(display.value);
         var rpn = shuntingYard(tokens);
         var result = evaluateRPN(rpn);

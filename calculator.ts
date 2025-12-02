@@ -1,8 +1,13 @@
 // get display element
 const display = document.getElementById("display") as HTMLInputElement;
+let equalPressed: boolean = false;
 
 // ---------------- BUTTON FUNCTIONS ----------------
 function press(value: string): void {
+    if (equalPressed){
+        display.value = "";
+        equalPressed = false;
+    }
     display.value += value;
 }
 
@@ -12,6 +17,7 @@ function clearDisplay(): void {
 
 function calculate(): void {
     try {
+        equalPressed = true;
         const tokens = tokenize(display.value);
         const rpn = shuntingYard(tokens);
         const result = evaluateRPN(rpn);
