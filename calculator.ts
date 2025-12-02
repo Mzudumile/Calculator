@@ -1,127 +1,158 @@
-let screen = document.getElementById("expression") as HTMLInputElement;
+// get display element
+const display = document.getElementById("display") as HTMLInputElement;
 
-function append(value: string): void {
-    screen.value += value;
+// ---------------- BUTTON FUNCTIONS ----------------
+function press(value: string): void {
+    display.value += value;
 }
 
-function clearScreen(): void {
-    screen.value = "";
+function clearDisplay(): void {
+    display.value = "";
 }
 
-/* ------------------------------
-   TOKENIZER
---------------------------------*/
+function calculate(): void {
+    try {
+        const tokens = tokenize(display.value);
+        const rpn = shuntingYard(tokens);
+        const result = evaluateRPN(rpn);
+        display.value = result.toString();
+    } catch (err) {
+        display.value = "Error";
+    }
+}
+
+// ---------------- HELPER FUNCTIONS ----------------
+function deg(x: number): number {
+    return x * Math.PI / 180;
+}
+
+// ---------------- TOKENIZER ----------------
 function tokenize(expr: string): string[] {
-    let tokens: string[] = [];
-    let number = "";
+    const tokens: string[] = [];
+    let num = "";
 
-    for (let i = 0; i < expr.length; i++) {
-        let c = expr[i];
+    const isDigit = (c: string) => /\d|\./.test(c);
 
-        if (/\d|\./.test(c)) {
-            number += c;
+    for (const c of expr) {
+        if (isDigit(c)) {
+            num += c;
         } else {
-            if (number.length > 0) {
-                tokens.push(number);
-                number = "";
+            if (num !== "") {
+                tokens.push(num);
+                num = "";
             }
-            if ("+-*/()√".includes(c)) {
-                tokens.push(c);
-            }
+            tokens.push(c);
         }
     }
-    if (number.length > 0) tokens.push(number);
 
-    return tokens;
+    if (num !== "") tokens.push(num);
+
+    return mergeFunctions(tokens);
 }
 
-/* ------------------------------
-   SHUNTING-YARD (to RPN)
---------------------------------*/
+function mergeFunctions(tokens: string[]): string[] {
+    const funcs = ["sin", "cos", "tan"];
+    const out: string[] = [];
 
-const precedence: any = {
-    "√": 4,
-    "*": 3,
-    "/": 3,
-    "+": 2,
-    "-": 2
-};
+    for (let i = 0; i < tokens.length; i++) {
+        if (i + 2 < tokens.length) {
+            const maybeFunc = tokens[i] + tokens[i+1] + tokens[i+2];
+            if (funcs.includes(maybeFunc)) {
+                out.push(maybeFunc);
+                i += 2;
+                continue;
+            }
+        }
+        out.push(tokens[i]);
+    }
 
-function toRPN(tokens: string[]): string[] {
-    let output: string[] = [];
-    let stack: string[] = [];
+    return out;
+}
 
-    for (let token of tokens) {
+// ---------------- SHUNTING-YARD ----------------
+function precedence(op: string): number {
+    if (op === "^") return 4;
+    if (["sin","cos","tan"].includes(op)) return 5;
+    if (op === "*" || op === "/") return 3;
+    if (op === "+" || op === "-") return 2;
+    return 0;
+}
+
+function isFunction(token: string): boolean {
+    return ["sin","cos","tan"].includes(token);
+}
+
+function shuntingYard(tokens: string[]): string[] {
+    const output: string[] = [];
+    const stack: string[] = [];
+
+    for (const token of tokens) {
         if (!isNaN(Number(token))) {
             output.push(token);
-        } else if (token === "√") {
+        } else if (isFunction(token)) {
             stack.push(token);
-        } else if ("+-*/".includes(token)) {
-            while (
-                stack.length > 0 &&
-                precedence[stack[stack.length - 1]] >= precedence[token]
-            ) {
+        } else if ("+-*/^".includes(token)) {
+            while(stack.length && precedence(stack[stack.length-1]) >= precedence(token)) {
                 output.push(stack.pop()!);
             }
             stack.push(token);
         } else if (token === "(") {
             stack.push(token);
         } else if (token === ")") {
-            while (stack.length && stack[stack.length - 1] !== "(") {
+            while(stack.length && stack[stack.length-1] !== "(") {
                 output.push(stack.pop()!);
             }
             stack.pop(); // remove "("
+            if(stack.length && isFunction(stack[stack.length-1])) {
+                output.push(stack.pop()!); // pop sin/cos/tan
+            }
         }
     }
 
-    while (stack.length) {
-        output.push(stack.pop()!);
-    }
+    while(stack.length) output.push(stack.pop()!);
 
     return output;
 }
 
-/* ------------------------------
-   RPN EVALUATOR
---------------------------------*/
-function evalRPN(rpn: string[]): number {
-    let stack: number[] = [];
+// ---------------- RPN EVALUATION ----------------
+function evaluateRPN(rpn: string[]): number {
+    const stack: number[] = [];
 
-    for (let token of rpn) {
+    for (const token of rpn) {
         if (!isNaN(Number(token))) {
             stack.push(Number(token));
-            continue;
-        }
-
-        if (token === "√") {
+        } else if (token === "+") {
+            const b = stack.pop()!, a = stack.pop()!;
+            stack.push(a + b);
+        } else if (token === "-") {
+            const b = stack.pop()!, a = stack.pop()!;
+            stack.push(a - b);
+        } else if (token === "*") {
+            const b = stack.pop()!, a = stack.pop()!;
+            stack.push(a * b);
+        } else if (token === "/") {
+            const b = stack.pop()!, a = stack.pop()!;
+            stack.push(a / b);
+        } else if (token === "^") {
+            const b = stack.pop()!, a = stack.pop()!;
+            stack.push(Math.pow(a, b));
+        } else if (token === "sin") {
             const a = stack.pop()!;
-            stack.push(Math.sqrt(a));
-        } else {
-            const b = stack.pop()!;
+            stack.push(Math.sin(deg(a)));
+        } else if (token === "cos") {
             const a = stack.pop()!;
-
-            switch (token) {
-                case "+": stack.push(a + b); break;
-                case "-": stack.push(a - b); break;
-                case "*": stack.push(a * b); break;
-                case "/": stack.push(a / b); break;
-            }
+            stack.push(Math.cos(deg(a)));
+        } else if (token === "tan") {
+            const a = stack.pop()!;
+            stack.push(Math.tan(deg(a)));
         }
     }
 
-    return stack[0];
+    return stack.pop()!;
 }
 
-/* ------------------------------
-   MAIN CALCULATE FUNCTION
---------------------------------*/
-function calculate(): void {
-    try {
-        const tokens = tokenize(screen.value);
-        const rpn = toRPN(tokens);
-        const answer = evalRPN(rpn);
-        screen.value = answer.toString();
-    } catch {
-        screen.value = "Error";
-    }
-}
+// ---------------- MAKE FUNCTIONS GLOBAL ----------------
+// This is necessary so HTML onclick can access them
+(window as any).press = press;
+(window as any).calculate = calculate;
+(window as any).clearDisplay = clearDisplay;
